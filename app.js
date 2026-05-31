@@ -75,51 +75,63 @@ function showToast(msg, ms) {
 }
 
 async function copyText(text) {
+  // Try modern clipboard API first
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (e) {
+      // Fall through to execCommand
+    }
+  }
+  // Reliable fallback: works in extension popup windows
   try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch (e) {
-    const ta = document.createElement('textarea');
+    var ta = document.createElement('textarea');
     ta.value = text;
-    ta.style.cssText = 'position:fixed;top:-9999px;opacity:0';
+    ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
     document.body.appendChild(ta);
+    ta.focus();
     ta.select();
-    const ok = document.execCommand('copy');
-    ta.remove();
+    var ok = document.execCommand('copy');
+    document.body.removeChild(ta);
     return ok;
+  } catch (e2) {
+    return false;
   }
 }
 
-// Per-button timers — so rapid re-clicks properly restart the 2s countdown
+// Per-button timers so rapid re-clicks restart the 2s countdown
 var _copyTimers = typeof WeakMap !== 'undefined' ? new WeakMap() : null;
 
 function flashCopy(btn) {
   var lbl = btn.querySelector('span:last-child');
 
-  // Capture original label text on first trigger only
+  // Save original label on first trigger (before it changes to 'Copied!')
   if (!btn._copyPrevLabel) {
     btn._copyPrevLabel = lbl ? lbl.textContent : '';
   }
 
-  // Cancel any pending revert for this button
+  // Cancel any pending revert
   if (_copyTimers && _copyTimers.has(btn)) {
     clearTimeout(_copyTimers.get(btn));
   }
 
-  // Force re-trigger the pop animation even if already in copied state
-  btn.classList.remove('copy-pop');
-  void btn.offsetWidth; // reflow so browser treats it as a new animation
+  // Re-trigger pop animation: remove → reflow → re-add
+  btn.classList.remove('copy-pop', 'copied');
+  void btn.offsetWidth;
   btn.classList.add('copied', 'copy-pop');
 
   if (lbl) lbl.textContent = 'Copied!';
 
-  // Remove only the pop class once the spring animation finishes
-  btn.addEventListener('animationend', function removePop() {
+  // Remove pop class after animation — check event.target to ignore
+  // bubbled animationend events from child elements (e.g. ico-check)
+  btn.addEventListener('animationend', function removePop(ev) {
+    if (ev.target !== btn) return;  // ignore child bubbles
     btn.classList.remove('copy-pop');
     btn.removeEventListener('animationend', removePop);
   });
 
-  // Revert label + classes after 2 s
+  // Revert after 2 s
   var timer = setTimeout(function() {
     btn.classList.remove('copied', 'copy-pop');
     if (lbl) lbl.textContent = btn._copyPrevLabel;
@@ -390,21 +402,30 @@ clearBtn.addEventListener('click', function() {
   clearError();
 });
 
+// ── Copy button handlers ──────────────────────────────────────
+// flashCopy fires IMMEDIATELY on click (before await) so the visual
+// feedback is never blocked by clipboard API failures.
 document.getElementById('copy-id-btn').addEventListener('click', async function(e) {
   var t = videoIdOut.textContent;
-  if (!t || t === '—') return;
-  if (await copyText(t)) { flashCopy(e.currentTarget); showToast('Video ID copied'); }
+  if (!t || t === '\u2014') return;
+  flashCopy(e.currentTarget);          // show feedback right away
+  await copyText(t);
+  showToast('Video ID copied');
 });
 
 document.getElementById('copy-info-btn').addEventListener('click', async function(e) {
   var t = videoInfoOut.textContent;
-  if (!t || t === '—') return;
-  if (await copyText(t)) { flashCopy(e.currentTarget); showToast('Info block copied'); }
+  if (!t || t === '\u2014') return;
+  flashCopy(e.currentTarget);
+  await copyText(t);
+  showToast('Info copied');
 });
 
 copyThumbBtn.addEventListener('click', async function(e) {
   if (!currentThumbUrl) return;
-  if (await copyText(currentThumbUrl)) { flashCopy(e.currentTarget); showToast('Thumbnail URL copied'); }
+  flashCopy(e.currentTarget);
+  await copyText(currentThumbUrl);
+  showToast('Thumbnail URL copied');
 });
 
 downloadBtn.addEventListener('click', function() {
