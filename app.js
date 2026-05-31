@@ -90,22 +90,46 @@ async function copyText(text) {
   }
 }
 
+// Per-button timers — so rapid re-clicks properly restart the 2s countdown
+var _copyTimers = typeof WeakMap !== 'undefined' ? new WeakMap() : null;
+
 function flashCopy(btn) {
-  const icoC = btn.querySelector('.ico-copy');
-  const icoK = btn.querySelector('.ico-check');
-  const lbl  = btn.querySelector('span:last-child');
-  const prev = lbl ? lbl.textContent : '';
-  btn.classList.add('copied');
-  if (icoC) icoC.style.display = 'none';
-  if (icoK) icoK.style.display = '';
-  if (lbl)  lbl.textContent = 'Copied!';
-  setTimeout(() => {
-    btn.classList.remove('copied');
-    if (icoC) icoC.style.display = '';
-    if (icoK) icoK.style.display = 'none';
-    if (lbl)  lbl.textContent = prev;
+  var lbl = btn.querySelector('span:last-child');
+
+  // Capture original label text on first trigger only
+  if (!btn._copyPrevLabel) {
+    btn._copyPrevLabel = lbl ? lbl.textContent : '';
+  }
+
+  // Cancel any pending revert for this button
+  if (_copyTimers && _copyTimers.has(btn)) {
+    clearTimeout(_copyTimers.get(btn));
+  }
+
+  // Force re-trigger the pop animation even if already in copied state
+  btn.classList.remove('copy-pop');
+  void btn.offsetWidth; // reflow so browser treats it as a new animation
+  btn.classList.add('copied', 'copy-pop');
+
+  if (lbl) lbl.textContent = 'Copied!';
+
+  // Remove only the pop class once the spring animation finishes
+  btn.addEventListener('animationend', function removePop() {
+    btn.classList.remove('copy-pop');
+    btn.removeEventListener('animationend', removePop);
+  });
+
+  // Revert label + classes after 2 s
+  var timer = setTimeout(function() {
+    btn.classList.remove('copied', 'copy-pop');
+    if (lbl) lbl.textContent = btn._copyPrevLabel;
+    delete btn._copyPrevLabel;
+    if (_copyTimers) _copyTimers.delete(btn);
   }, 2000);
+
+  if (_copyTimers) _copyTimers.set(btn, timer);
 }
+
 
 function showError(msg) {
   errorBanner.textContent = msg;
@@ -274,6 +298,8 @@ async function downloadThumbnail(url, videoId) {
     showError('Download failed: ' + e.message);
   }
 }
+
+
 
 // ── Main extract ──────────────────────────────────────────────
 async function doExtract() {

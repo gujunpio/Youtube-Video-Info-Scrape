@@ -295,12 +295,55 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 5px 12px; cursor: pointer;
-  transition: color var(--transition), background var(--transition), border-color var(--transition), transform var(--transition);
+  /* box-shadow included so green glow can transition in */
+  transition: color 0.18s ease, background 0.18s ease,
+              border-color 0.18s ease, box-shadow 0.18s ease,
+              transform 0.18s ease;
   font-family: 'Inter', sans-serif;
+  position: relative; overflow: hidden;
 }
-.action-btn:hover { color: var(--text-1); background: rgba(128,128,200,0.1); border-color: var(--border-focus); transform: translateY(-1px); }
-.action-btn:active { transform: translateY(0); }
-.action-btn.copied { color: var(--accent-g); border-color: rgba(74,222,128,0.3); }
+.action-btn:hover {
+  color: var(--text-1);
+  background: rgba(128,128,200,0.1);
+  border-color: var(--border-focus);
+  transform: translateY(-1px);
+}
+.action-btn:active { transform: translateY(0) scale(0.95); }
+
+/* ── Copied state — green fill + glow ring ───────────────────── */
+.action-btn.copied {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.12);
+  border-color: rgba(74, 222, 128, 0.45);
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.12),
+              0 0 16px rgba(74, 222, 128, 0.1);
+  transform: translateY(0) !important;  /* pin down hover lift */
+}
+.action-btn.copied:hover {
+  background: rgba(74, 222, 128, 0.16);
+  border-color: rgba(74, 222, 128, 0.55);
+}
+
+/* Spring "pop" — plays once, then JS removes the class */
+.action-btn.copy-pop {
+  animation: copy-pop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes copy-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(0.87); }
+  100% { transform: scale(1); }
+}
+
+/* Checkmark spin-in when button enters copied state */
+.ico-check { display: none; }
+.action-btn.copied .ico-check {
+  display: block;
+  animation: check-in 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes check-in {
+  from { opacity: 0; transform: scale(0.3) rotate(-30deg); }
+  to   { opacity: 1; transform: scale(1) rotate(0deg); }
+}
 
 .ico-copy, .ico-check { width: 13px; height: 13px; flex-shrink: 0; }
 
@@ -308,6 +351,7 @@ body {
 .download-btn:hover { background: rgba(168,85,247,0.18); border-color: rgba(168,85,247,0.4); color: #d8a4ff; }
 
 .thumb-actions { display: flex; gap: 7px; }
+
 
 /* ── Thumbnail card ──────────────────────────────────────────── */
 .thumb-body { padding: 14px 18px; }
