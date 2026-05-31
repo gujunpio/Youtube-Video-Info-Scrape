@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Video Info",
+  "short_name": "YT Info",
+  "version": "1.0.0",
+  "description": "Extract YouTube video ID, title, full description and max-res thumbnail in one click.",
+  "permissions": ["windows", "downloads", "storage"],
+  "host_permissions": [
+    "https://www.youtube.com/*",
+    "https://i.ytimg.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
+}

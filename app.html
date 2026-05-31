@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YouTube Video Info</title>
+  <meta name="description" content="Extract YouTube video ID, title, description and thumbnail instantly." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+
+  <!-- Ambient background orbs -->
+  <div class="bg-orbs" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div class="app-container">
+
+    <!-- ── Header ─────────────────────────────────────── -->
+    <header class="app-header">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="36" height="36" rx="9" fill="url(#hGrad)"/>
+            <polygon points="14,11 26,18 14,25" fill="white"/>
+            <defs>
+              <linearGradient id="hGrad" x1="0" y1="0" x2="36" y2="36">
+                <stop offset="0%" stop-color="#ff4e6a"/>
+                <stop offset="100%" stop-color="#b5001b"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1 class="logo-title">YouTube Video Info</h1>
+          <p class="logo-subtitle">Paste a link — get everything instantly</p>
+        </div>
+      </div>
+
+      <!-- Theme toggle -->
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle theme">
+        <!-- Moon icon (shown in dark mode) -->
+        <svg class="icon-moon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" fill="currentColor"/>
+        </svg>
+        <!-- Sun icon (shown in light mode) -->
+        <svg class="icon-sun" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none">
+          <circle cx="10" cy="10" r="3.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- ── Input ──────────────────────────────────────── -->
+    <section class="input-section">
+      <div class="input-wrapper" id="input-wrapper">
+        <svg class="input-prefix-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" fill="currentColor"/>
+        </svg>
+        <input
+          type="url"
+          id="yt-url-input"
+          class="url-input"
+          placeholder="Paste YouTube URL here…"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="YouTube URL"
+        />
+        <button id="clear-btn" class="icon-btn clear-btn" aria-label="Clear" style="display:none">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <button id="extract-btn" class="extract-btn" aria-label="Extract info">
+        <span class="btn-label">Extract</span>
+        <svg class="btn-icon" viewBox="0 0 18 18" fill="none"><path d="M9 3v9M5 8l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="btn-spinner" id="btn-spinner"></span>
+      </button>
+    </section>
+
+    <!-- ── Error ──────────────────────────────────────── -->
+    <div class="error-banner" id="error-banner" role="alert" aria-live="polite"></div>
+
+    <!-- ── Results ────────────────────────────────────── -->
+    <main class="results" id="results">
+
+      <!-- Card 1: Video ID -->
+      <article class="card" id="card-id">
+        <div class="card-head">
+          <div class="card-label">
+            <span class="badge badge-purple">01</span>
+            <span class="card-title">Video ID</span>
+          </div>
+          <button class="action-btn copy-btn" id="copy-id-btn" aria-label="Copy Video ID">
+            <svg class="ico-copy" viewBox="0 0 18 18" fill="none"><rect x="6" y="6" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M3 12V4a2 2 0 012-2h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <svg class="ico-check" viewBox="0 0 18 18" fill="none" style="display:none"><path d="M3 9l4 4 8-8" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Copy</span>
+          </button>
+        </div>
+        <div class="card-body">
+          <code class="value-mono" id="video-id-out">—</code>
+        </div>
+      </article>
+
+      <!-- Card 2: Combined block -->
+      <article class="card" id="card-info">
+        <div class="card-head">
+          <div class="card-label">
+            <span class="badge badge-blue">02</span>
+            <span class="card-title">Link · Title · Description</span>
+          </div>
+          <button class="action-btn copy-btn" id="copy-info-btn" aria-label="Copy combined info">
+            <svg class="ico-copy" viewBox="0 0 18 18" fill="none"><rect x="6" y="6" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M3 12V4a2 2 0 012-2h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <svg class="ico-check" viewBox="0 0 18 18" fill="none" style="display:none"><path d="M3 9l4 4 8-8" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Copy</span>
+          </button>
+        </div>
+        <div class="card-body">
+          <pre class="value-pre" id="video-info-out">—</pre>
+        </div>
+      </article>
+
+      <!-- Card 3: Thumbnail -->
+      <article class="card" id="card-thumb">
+        <div class="card-head">
+          <div class="card-label">
+            <span class="badge badge-red">03</span>
+            <span class="card-title">Thumbnail <span class="badge-quality">Max HD · 1280×720</span></span>
+          </div>
+          <div class="thumb-actions">
+            <button class="action-btn copy-btn" id="copy-thumb-url-btn" aria-label="Copy thumbnail URL">
+              <svg class="ico-copy" viewBox="0 0 18 18" fill="none"><rect x="6" y="6" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M3 12V4a2 2 0 012-2h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+              <svg class="ico-check" viewBox="0 0 18 18" fill="none" style="display:none"><path d="M3 9l4 4 8-8" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>Copy URL</span>
+            </button>
+            <button class="action-btn download-btn" id="download-thumb-btn" aria-label="Download thumbnail">
+              <svg viewBox="0 0 18 18" fill="none"><path d="M9 3v9M5 8l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>Download</span>
+            </button>
+          </div>
+        </div>
+        <div class="card-body thumb-body">
+          <div class="thumb-placeholder" id="thumb-placeholder">
+            <svg viewBox="0 0 56 56" fill="none"><rect width="56" height="56" rx="14" fill="rgba(128,128,200,0.06)"/><rect x="12" y="16" width="32" height="24" rx="4" stroke="rgba(128,128,200,0.2)" stroke-width="1.5"/><circle cx="20" cy="24" r="3" fill="rgba(128,128,200,0.2)"/><path d="M12 36l10-10 6 6 4-4 12 12" stroke="rgba(128,128,200,0.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Thumbnail will appear here</span>
+          </div>
+          <div class="thumb-display" id="thumb-display" style="display:none">
+            <img id="thumb-img" class="thumb-img" src="" alt="YouTube video thumbnail" />
+          </div>
+        </div>
+      </article>
+
+    </main>
+
+    <footer class="app-footer">
+      Data fetched directly from YouTube · Nothing is stored
+    </footer>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
