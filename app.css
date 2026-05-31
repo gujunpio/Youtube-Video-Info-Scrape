@@ -336,6 +336,7 @@ body {
 
 /* Checkmark spin-in when button enters copied state */
 .ico-check { display: none; }
+.action-btn.copied .ico-copy  { display: none; }   /* hide copy icon */
 .action-btn.copied .ico-check {
   display: block;
   animation: check-in 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
