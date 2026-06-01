@@ -27,6 +27,14 @@ const toast        = document.getElementById('toast');
 
 const cards = document.querySelectorAll('.card');
 
+// API settings panel
+const settingsBtn   = document.getElementById('settings-btn');
+const apiPanel      = document.getElementById('api-panel');
+const apiKeyInput   = document.getElementById('api-key-input');
+const apiSaveBtn    = document.getElementById('api-save-btn');
+const apiStatusDot  = document.getElementById('api-status-dot');
+const apiStatusMsg  = document.getElementById('api-status-msg');
+
 let currentVideoId  = null;
 let currentThumbUrl = null;
 let toastTimer      = null;
@@ -439,6 +447,78 @@ document.addEventListener('drop', function(e) {
   e.preventDefault();
   var text = e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('text/uri-list');
   if (text) { input.value = text.trim(); clearBtn.style.display = 'flex'; doExtract(); }
+});
+
+// ── API Key Settings ──────────────────────────────────────────
+
+// Toggle panel
+settingsBtn.addEventListener('click', function() {
+  var isVisible = apiPanel.classList.toggle('visible');
+  settingsBtn.classList.toggle('active', isVisible);
+});
+
+// Load saved key on init
+function loadApiKey() {
+  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+    chrome.storage.local.get('ytApiKey', function(result) {
+      if (result.ytApiKey) {
+        apiKeyInput.value = result.ytApiKey;
+        apiStatusDot.classList.add('connected');
+      }
+    });
+  }
+}
+loadApiKey();
+
+// Save key
+apiSaveBtn.addEventListener('click', function() {
+  var key = apiKeyInput.value.trim();
+  if (!key) {
+    showApiStatus('Please enter an API key.', true);
+    return;
+  }
+
+  apiSaveBtn.textContent = 'Validating…';
+  apiSaveBtn.disabled = true;
+
+  // Validate via background worker
+  chrome.runtime.sendMessage(
+    { type: 'VALIDATE_API_KEY', apiKey: key },
+    function(response) {
+      apiSaveBtn.textContent = 'Save Key';
+      apiSaveBtn.disabled = false;
+
+      if (chrome.runtime.lastError) {
+        showApiStatus('Error: ' + chrome.runtime.lastError.message, true);
+        return;
+      }
+
+      if (response && response.ok) {
+        chrome.storage.local.set({ ytApiKey: key }, function() {
+          apiStatusDot.classList.add('connected');
+          showApiStatus('✓ API key validated and saved!', false);
+          showToast('API key saved');
+        });
+      } else {
+        apiStatusDot.classList.remove('connected');
+        var errMsg = response && response.error ? response.error : 'Unknown error';
+        if (errMsg === 'keyInvalid') errMsg = 'Invalid API key. Check the key and try again.';
+        if (errMsg === 'accessNotConfigured') errMsg = 'YouTube Data API v3 is not enabled for this key. Enable it in Google Cloud Console.';
+        showApiStatus('✗ ' + errMsg, true);
+      }
+    }
+  );
+});
+
+function showApiStatus(msg, isError) {
+  apiStatusMsg.textContent = msg;
+  apiStatusMsg.className = 'api-status-msg visible' + (isError ? ' error' : '');
+  setTimeout(function() { apiStatusMsg.classList.remove('visible'); }, 5000);
+}
+
+// Allow Enter in API key input
+apiKeyInput.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') apiSaveBtn.click();
 });
 
 input.focus();
