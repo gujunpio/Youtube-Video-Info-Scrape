@@ -118,6 +118,18 @@
     <!-- ── Error ──────────────────────────────────────── -->
     <div class="error-banner" id="error-banner" role="alert" aria-live="polite"></div>
 
+    <!-- ── Mini Player ─────────────────────────────────── -->
+    <div class="miniplayer" id="miniplayer">
+      <div class="miniplayer-inner">
+        <iframe
+          id="miniplayer-iframe"
+          src=""
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+        ></iframe>
+      </div>
+    </div>
+
     <!-- ── Results ────────────────────────────────────── -->
     <main class="results" id="results">
 
@@ -165,10 +177,6 @@
             <span class="card-title">Thumbnail <span class="badge-quality">Max HD · 1280×720</span></span>
           </div>
           <div class="thumb-actions">
-            <button class="action-btn watch-btn" id="watch-btn" aria-label="Watch video">
-              <svg viewBox="0 0 18 18" fill="none"><polygon points="6,3 16,9 6,15" fill="currentColor"/></svg>
-              <span>Watch</span>
-            </button>
             <button class="action-btn copy-btn" id="copy-thumb-img-btn" aria-label="Copy image to clipboard">
               <svg class="ico-copy" viewBox="0 0 18 18" fill="none"><rect x="2" y="4" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.4"/><circle cx="6.5" cy="8" r="1.5" fill="currentColor"/><path d="M2 12l4-4 3 3 2-2 5 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               <svg class="ico-check" viewBox="0 0 18 18" fill="none"><path d="M3 9l4 4 8-8" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -187,11 +195,6 @@
           </div>
           <div class="thumb-display" id="thumb-display" style="display:none">
             <img id="thumb-img" class="thumb-img" src="" alt="YouTube video thumbnail" />
-            <button class="play-overlay" id="play-overlay" aria-label="Watch video">
-              <div class="play-circle">
-                <svg viewBox="0 0 24 24" fill="none"><polygon points="9,6 19,12 9,18" fill="white"/></svg>
-              </div>
-            </button>
           </div>
         </div>
       </article>
@@ -199,7 +202,7 @@
     </main>
 
     <footer class="app-footer">
-      Data fetched directly from YouTube · Nothing is stored
+      YouTube Video Info · Powered by YouTube Data API v3
     </footer>
   </div>
 

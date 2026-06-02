@@ -1,0 +1,15 @@
+node_modules
+.git
+*.md
+icons
+manifest.json
+popup.html
+popup.js
+popup.css
+background.js
+app.html
+app.css
+app.js
+style.css
+index.html
+player.html

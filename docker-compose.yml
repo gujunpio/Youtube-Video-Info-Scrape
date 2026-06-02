@@ -1,0 +1,9 @@
+services:
+  youtube-info:
+    build: .
+    container_name: youtube-video-info
+    ports:
+      - "3069:3000"
+    environment:
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY:-}
+    restart: unless-stopped

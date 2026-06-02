@@ -229,26 +229,29 @@ body {
 @keyframes fade-in { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
 
 /* ── Mini Player ────────────────────────────────────────────── */
-.miniplayer-card {
+.miniplayer {
   background: var(--card);
   border: 1.5px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow);
   animation: card-in var(--spring) forwards;
+  display: none;
 }
+.miniplayer.visible { display: block; }
 
-.miniplayer-wrapper {
+.miniplayer-inner {
   position: relative;
   width: 100%;
-  padding-top: 56.25%; /* 16:9 */
+  padding-top: 56.25%;
 }
 
-.miniplayer-wrapper iframe {
+.miniplayer-inner iframe {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
+  border: none;
   border-radius: var(--radius-lg);
 }
 
