@@ -178,6 +178,10 @@ body {
 .icon-btn:hover { color: var(--text-1); background: rgba(128,128,200,0.1); }
 .icon-btn svg { width: 16px; height: 16px; }
 
+.copy-url-btn { transition: color var(--transition), background var(--transition), transform 0.15s ease; }
+.copy-url-btn:hover { transform: scale(1.12); }
+.copy-url-btn svg { width: 14px; height: 14px; }
+
 /* Extract button */
 .extract-btn {
   position: relative; display: flex; align-items: center; gap: 8px;

@@ -12,6 +12,7 @@ const iconSun      = document.querySelector('.icon-sun');
 
 const input        = document.getElementById('yt-url-input');
 const clearBtn     = document.getElementById('clear-btn');
+const copyUrlBtn   = document.getElementById('copy-url-btn');
 const inputWrapper = document.getElementById('input-wrapper');
 const extractBtn   = document.getElementById('extract-btn');
 const errorBanner  = document.getElementById('error-banner');
@@ -395,7 +396,9 @@ input.addEventListener('keydown', function(e) {
 });
 
 input.addEventListener('input', function() {
-  clearBtn.style.display = input.value ? 'flex' : 'none';
+  var hasValue = input.value.length > 0;
+  clearBtn.style.display = hasValue ? 'flex' : 'none';
+  copyUrlBtn.style.display = hasValue ? 'flex' : 'none';
   if (errorBanner.classList.contains('visible')) clearError();
 });
 
@@ -406,8 +409,29 @@ input.addEventListener('paste', function() {
 clearBtn.addEventListener('click', function() {
   input.value = '';
   clearBtn.style.display = 'none';
+  copyUrlBtn.style.display = 'none';
   input.focus();
   clearError();
+});
+
+copyUrlBtn.addEventListener('click', async function() {
+  var url = input.value.trim();
+  if (!url) return;
+  var ok = await copyText(url);
+  if (ok) {
+    // Show checkmark briefly
+    var icoCopy  = copyUrlBtn.querySelector('.ico-copy');
+    var icoCheck = copyUrlBtn.querySelector('.ico-check');
+    icoCopy.style.display = 'none';
+    icoCheck.style.display = 'block';
+    copyUrlBtn.style.color = '#4ade80';
+    showToast('URL copied');
+    setTimeout(function() {
+      icoCopy.style.display = 'block';
+      icoCheck.style.display = 'none';
+      copyUrlBtn.style.color = '';
+    }, 1500);
+  }
 });
 
 // ── Copy button handlers ──────────────────────────────────────
