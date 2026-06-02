@@ -255,6 +255,30 @@ body {
   border-radius: var(--radius-lg);
 }
 
+/* ── Language Badge ─────────────────────────────────────────── */
+.lang-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--text-2);
+  animation: fade-in 0.25s ease;
+}
+.lang-badge svg {
+  width: 18px; height: 18px;
+  color: var(--accent-b);
+  flex-shrink: 0;
+}
+.lang-badge strong {
+  color: var(--text-1);
+  font-weight: 600;
+  margin-left: 2px;
+}
+
 /* ── Cards ───────────────────────────────────────────────────── */
 .results { display: flex; flex-direction: column; gap: 14px; }
 

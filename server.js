@@ -107,6 +107,7 @@ async function fetchViaDataAPI(videoId, key) {
   return {
     title:       snippet.title || '(Title not available)',
     description: snippet.description || '(No description)',
+    language:    snippet.defaultAudioLanguage || snippet.defaultLanguage || null,
   };
 }
 
@@ -148,8 +149,25 @@ async function fetchViaInternalAPI(videoId) {
       }
     }
   } catch (_) { /* keep shortDescription */ }
+  // Extract language from microformat or captions
+  let language = null;
+  try {
+    const micro = playerData.microformat?.playerMicroformatRenderer;
+    if (micro) {
+      language = micro.defaultAudioLanguage || micro.availableLanguages?.[0] || null;
+    }
+    // Fallback: first caption track language
+    if (!language) {
+      const captions = playerData.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+      if (captions && captions.length > 0) {
+        // Find the auto-generated track (usually original language)
+        const auto = captions.find(c => c.kind === 'asr');
+        language = (auto || captions[0]).languageCode || null;
+      }
+    }
+  } catch (_) { /* no language info */ }
 
-  return { title: details.title || '(Title not available)', description };
+  return { title: details.title || '(Title not available)', description, language };
 }
 
 // ── Strategy 3: noembed oEmbed ───────────────────────────────
@@ -161,6 +179,7 @@ async function fetchOembed(videoId) {
   return {
     title:       data.title || '(Title not available)',
     description: '(Full description not available. Channel: ' + (data.author_name || 'Unknown') + ')',
+    language:    null,
   };
 }
 

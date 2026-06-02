@@ -40,6 +40,10 @@ const apiStatusMsg  = document.getElementById('api-status-msg');
 const miniplayer       = document.getElementById('miniplayer');
 const miniplayerIframe = document.getElementById('miniplayer-iframe');
 
+// Language badge
+const langBadge = document.getElementById('lang-badge');
+const langValue = document.getElementById('lang-value');
+
 let currentVideoId  = null;
 let currentThumbUrl = null;
 let toastTimer      = null;
@@ -155,7 +159,30 @@ async function fetchVideoInfo(videoId) {
   if (!res.ok || !data.ok) {
     throw new Error(data.error || 'Failed to fetch video info');
   }
-  return data.data; // { title, description }
+  return data.data; // { title, description, language }
+}
+
+// ── Language display ─────────────────────────────────────────
+var langFlags = {
+  'en': '🇬🇧', 'en-US': '🇺🇸', 'en-GB': '🇬🇧',
+  'vi': '🇻🇳', 'ja': '🇯🇵', 'ko': '🇰🇷', 'zh': '🇨🇳',
+  'zh-TW': '🇹🇼', 'zh-Hans': '🇨🇳', 'zh-Hant': '🇹🇼',
+  'fr': '🇫🇷', 'de': '🇩🇪', 'es': '🇪🇸', 'pt': '🇧🇷', 'pt-BR': '🇧🇷',
+  'ru': '🇷🇺', 'it': '🇮🇹', 'th': '🇹🇭', 'id': '🇮🇩',
+  'ar': '🇸🇦', 'hi': '🇮🇳', 'nl': '🇳🇱', 'pl': '🇵🇱', 'tr': '🇹🇷',
+  'sv': '🇸🇪', 'da': '🇩🇰', 'fi': '🇫🇮', 'no': '🇳🇴', 'uk': '🇺🇦',
+};
+
+function formatLanguage(code) {
+  if (!code) return null;
+  try {
+    var dn = new Intl.DisplayNames(['en'], { type: 'language' });
+    var name = dn.of(code);
+    var flag = langFlags[code] || langFlags[code.split('-')[0]] || '🌐';
+    return flag + '  ' + name + '  (' + code + ')';
+  } catch (e) {
+    return '🌐  ' + code;
+  }
 }
 
 // ── Thumbnail download (web) ─────────────────────────────────
@@ -235,6 +262,14 @@ async function doExtract() {
     thumbDisplay.style.display     = 'block';
 
     revealCards();
+
+    // Show language
+    if (meta.language) {
+      langValue.textContent = formatLanguage(meta.language);
+      langBadge.style.display = 'flex';
+    } else {
+      langBadge.style.display = 'none';
+    }
 
   } catch (err) {
     showError(err.message);
