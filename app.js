@@ -22,7 +22,7 @@ const videoInfoOut = document.getElementById('video-info-out');
 const thumbImg     = document.getElementById('thumb-img');
 const thumbPlaceholder = document.getElementById('thumb-placeholder');
 const thumbDisplay = document.getElementById('thumb-display');
-const copyThumbBtn = document.getElementById('copy-thumb-url-btn');
+const copyThumbBtn = document.getElementById('copy-thumb-img-btn');
 const downloadBtn  = document.getElementById('download-thumb-btn');
 const toast        = document.getElementById('toast');
 
@@ -456,8 +456,30 @@ document.getElementById('copy-info-btn').addEventListener('click', async functio
 copyThumbBtn.addEventListener('click', async function(e) {
   if (!currentThumbUrl) return;
   flashCopy(e.currentTarget);
-  await copyText(currentThumbUrl);
-  showToast('Thumbnail URL copied');
+  try {
+    // Draw the loaded <img> onto a canvas to get PNG blob
+    var canvas = document.createElement('canvas');
+    canvas.width  = thumbImg.naturalWidth;
+    canvas.height = thumbImg.naturalHeight;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(thumbImg, 0, 0);
+
+    var blob = await new Promise(function(resolve, reject) {
+      canvas.toBlob(function(b) {
+        if (b) resolve(b); else reject(new Error('Canvas toBlob failed'));
+      }, 'image/png');
+    });
+
+    await navigator.clipboard.write([
+      new ClipboardItem({ 'image/png': blob })
+    ]);
+    showToast('Image copied to clipboard');
+  } catch (err) {
+    console.warn('[YT-Info] Copy image failed:', err);
+    // Fallback: copy the URL instead
+    await copyText(currentThumbUrl);
+    showToast('Image URL copied (image copy not supported)');
+  }
 });
 
 downloadBtn.addEventListener('click', function() {
