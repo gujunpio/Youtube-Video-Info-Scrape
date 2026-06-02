@@ -346,23 +346,40 @@ copyThumbBtn.addEventListener('click', async function(e) {
   if (!currentThumbUrl) return;
   flashCopy(e.currentTarget);
   try {
+    // Fetch image as blob to avoid CORS tainted canvas
+    var res = await fetch(currentThumbUrl);
+    var imgBlob = await res.blob();
+    var blobUrl = URL.createObjectURL(imgBlob);
+
+    // Load into a new image (same-origin blob URL = no taint)
+    var img = new Image();
+    img.src = blobUrl;
+    await new Promise(function(resolve, reject) {
+      img.onload = resolve;
+      img.onerror = reject;
+    });
+
+    // Draw to canvas → PNG blob
     var canvas = document.createElement('canvas');
-    canvas.width  = thumbImg.naturalWidth;
-    canvas.height = thumbImg.naturalHeight;
-    var ctx = canvas.getContext('2d');
-    ctx.drawImage(thumbImg, 0, 0);
-    var blob = await new Promise(function(resolve, reject) {
+    canvas.width  = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    canvas.getContext('2d').drawImage(img, 0, 0);
+    URL.revokeObjectURL(blobUrl);
+
+    var pngBlob = await new Promise(function(resolve, reject) {
       canvas.toBlob(function(b) {
-        if (b) resolve(b); else reject(new Error('Canvas toBlob failed'));
+        if (b) resolve(b); else reject(new Error('toBlob failed'));
       }, 'image/png');
     });
+
     await navigator.clipboard.write([
-      new ClipboardItem({ 'image/png': blob })
+      new ClipboardItem({ 'image/png': pngBlob })
     ]);
     showToast('Image copied to clipboard');
   } catch (err) {
+    console.warn('[Copy Image]', err);
     await copyText(currentThumbUrl);
-    showToast('Image URL copied (image copy not supported)');
+    showToast('Image URL copied (fallback)');
   }
 });
 
