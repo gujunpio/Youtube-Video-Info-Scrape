@@ -1,6 +1,6 @@
 /* =============================================================
-   YouTube Video Info — app.js
-   Chrome Extension page script
+   YouTube Video Info v2 — app.js
+   Chrome Extension page script (lightweight, no mini player)
    ============================================================= */
 'use strict';
 
@@ -13,8 +13,8 @@ const iconSun      = document.querySelector('.icon-sun');
 const input        = document.getElementById('yt-url-input');
 const clearBtn     = document.getElementById('clear-btn');
 const copyUrlBtn   = document.getElementById('copy-url-btn');
+const inputActions = document.getElementById('input-actions');
 const inputWrapper = document.getElementById('input-wrapper');
-const extractBtn   = document.getElementById('extract-btn');
 const errorBanner  = document.getElementById('error-banner');
 
 const videoIdOut   = document.getElementById('video-id-out');
@@ -24,6 +24,7 @@ const thumbPlaceholder = document.getElementById('thumb-placeholder');
 const thumbDisplay = document.getElementById('thumb-display');
 const copyThumbBtn = document.getElementById('copy-thumb-img-btn');
 const downloadBtn  = document.getElementById('download-thumb-btn');
+const openLinkBtn  = document.getElementById('open-link-btn');
 const toast        = document.getElementById('toast');
 
 const cards = document.querySelectorAll('.card');
@@ -36,10 +37,6 @@ const apiSaveBtn    = document.getElementById('api-save-btn');
 const apiStatusDot  = document.getElementById('api-status-dot');
 const apiStatusMsg  = document.getElementById('api-status-msg');
 
-// Watch button + play overlay
-const watchBtn     = document.getElementById('watch-btn');
-const playOverlay  = document.getElementById('play-overlay');
-
 let currentVideoId  = null;
 let currentThumbUrl = null;
 let toastTimer      = null;
@@ -48,14 +45,14 @@ let toastTimer      = null;
 function applyTheme(theme) {
   htmlEl.setAttribute('data-theme', theme);
   localStorage.setItem('ytInfoTheme', theme);
-  const isDark = theme === 'dark';
+  var isDark = theme === 'dark';
   iconMoon.style.display = isDark ? '' : 'none';
   iconSun.style.display  = isDark ? 'none' : '';
 }
 
 applyTheme(localStorage.getItem('ytInfoTheme') || 'dark');
 
-themeToggle.addEventListener('click', () => {
+themeToggle.addEventListener('click', function() {
   applyTheme(htmlEl.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
 });
 
@@ -63,12 +60,12 @@ themeToggle.addEventListener('click', () => {
 function extractVideoId(url) {
   if (!url || !url.trim()) return null;
   url = url.trim();
-  const patterns = [
+  var patterns = [
     /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
     /youtube\.com\/.*[?&]v=([a-zA-Z0-9_-]{11})/,
   ];
-  for (const re of patterns) {
-    const m = url.match(re);
+  for (var i = 0; i < patterns.length; i++) {
+    var m = url.match(patterns[i]);
     if (m) return m[1];
   }
   if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
@@ -76,91 +73,66 @@ function extractVideoId(url) {
 }
 
 function maxThumbUrl(videoId) {
-  return `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
+  return 'https://i.ytimg.com/vi/' + videoId + '/maxresdefault.jpg';
 }
 
 function showToast(msg, ms) {
-  ms = ms || 2400;
+  ms = ms || 2000;
   toast.textContent = msg;
   toast.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove('show'), ms);
+  toastTimer = setTimeout(function() { toast.classList.remove('show'); }, ms);
 }
 
 async function copyText(text) {
-  // Try modern clipboard API first
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch (e) {
-      // Fall through to execCommand
-    }
+    try { await navigator.clipboard.writeText(text); return true; }
+    catch (e) { /* fall through */ }
   }
-  // Reliable fallback: works in extension popup windows
   try {
     var ta = document.createElement('textarea');
     ta.value = text;
     ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
     document.body.appendChild(ta);
-    ta.focus();
-    ta.select();
+    ta.focus(); ta.select();
     var ok = document.execCommand('copy');
     document.body.removeChild(ta);
     return ok;
-  } catch (e2) {
-    return false;
-  }
+  } catch (e2) { return false; }
 }
 
-// Per-button timers so rapid re-clicks restart the 2s countdown
+// Per-button copy feedback
 var _copyTimers = typeof WeakMap !== 'undefined' ? new WeakMap() : null;
 
 function flashCopy(btn) {
   var lbl = btn.querySelector('span:last-child');
-
-  // Save original label on first trigger (before it changes to 'Copied!')
   if (!btn._copyPrevLabel) {
     btn._copyPrevLabel = lbl ? lbl.textContent : '';
   }
-
-  // Cancel any pending revert
   if (_copyTimers && _copyTimers.has(btn)) {
     clearTimeout(_copyTimers.get(btn));
   }
-
-  // Re-trigger pop animation: remove → reflow → re-add
-  btn.classList.remove('copy-pop', 'copied');
+  btn.classList.remove('copied');
   void btn.offsetWidth;
-  btn.classList.add('copied', 'copy-pop');
-
+  btn.classList.add('copied');
   if (lbl) lbl.textContent = 'Copied!';
 
-  // Remove pop class after animation — check event.target to ignore
-  // bubbled animationend events from child elements (e.g. ico-check)
-  btn.addEventListener('animationend', function removePop(ev) {
-    if (ev.target !== btn) return;  // ignore child bubbles
-    btn.classList.remove('copy-pop');
-    btn.removeEventListener('animationend', removePop);
-  });
-
-  // Revert after 2 s
   var timer = setTimeout(function() {
-    btn.classList.remove('copied', 'copy-pop');
+    btn.classList.remove('copied');
     if (lbl) lbl.textContent = btn._copyPrevLabel;
     delete btn._copyPrevLabel;
     if (_copyTimers) _copyTimers.delete(btn);
   }, 2000);
-
   if (_copyTimers) _copyTimers.set(btn, timer);
 }
-
 
 function showError(msg) {
   errorBanner.textContent = msg;
   errorBanner.classList.add('visible');
   inputWrapper.classList.add('shake');
-  inputWrapper.addEventListener('animationend', () => inputWrapper.classList.remove('shake'), { once: true });
+  inputWrapper.addEventListener('animationend', function() {
+    inputWrapper.classList.remove('shake');
+  }, { once: true });
 }
 
 function clearError() {
@@ -172,34 +144,22 @@ function revealCards() {
   cards.forEach(function(c, i) {
     c.classList.remove('visible');
     void c.offsetWidth;
-    c.style.animationDelay = (i * 75) + 'ms';
+    c.style.animationDelay = (i * 60) + 'ms';
     c.classList.add('visible');
   });
 }
 
 // ── JSON extraction via bracket-counting ─────────────────────
-// Extracts the JSON object starting at startIdx in html string.
-// Correctly handles nested objects, string escapes, and unicode.
 function extractJsonObject(html, startIdx) {
-  var depth  = 0;
-  var inStr  = false;
-  var escape = false;
-  var i      = startIdx;
-
+  var depth = 0, inStr = false, escape = false, i = startIdx;
   while (i < html.length) {
     var ch = html[i];
-
-    if (escape) {
-      escape = false;
-      i++;
-      continue;
-    }
-
+    if (escape) { escape = false; i++; continue; }
     if (inStr) {
       if (ch === '\\') escape = true;
       else if (ch === '"') inStr = false;
     } else {
-      if (ch === '"')      inStr = true;
+      if (ch === '"') inStr = true;
       else if (ch === '{') depth++;
       else if (ch === '}') {
         depth--;
@@ -212,9 +172,6 @@ function extractJsonObject(html, startIdx) {
 }
 
 // ── YouTube page scraping ─────────────────────────────────────
-// Routes through the background service worker (background.js) so the
-// fetch runs in a privileged context — avoids the CSP/CORS issues that
-// cause "Failed to fetch" when fetching from an extension page directly.
 async function scrapeYouTubePage(videoId) {
   var html = await new Promise(function(resolve, reject) {
     chrome.runtime.sendMessage(
@@ -233,10 +190,9 @@ async function scrapeYouTubePage(videoId) {
     );
   });
 
-  // Parse ytInitialData from the fetched HTML
-  var MARKER    = 'var ytInitialData = ';
+  var MARKER = 'var ytInitialData = ';
   var markerIdx = html.indexOf(MARKER);
-  if (markerIdx === -1) throw new Error('Could not find page data — YouTube may have updated its format.');
+  if (markerIdx === -1) throw new Error('Could not find page data.');
 
   var braceIdx = html.indexOf('{', markerIdx + MARKER.length);
   if (braceIdx === -1) throw new Error('Could not locate JSON start.');
@@ -245,47 +201,32 @@ async function scrapeYouTubePage(videoId) {
   if (!jsonStr) throw new Error('Could not extract JSON from page.');
 
   var data = JSON.parse(jsonStr);
-
   var contents =
-    data &&
-    data.contents &&
+    data && data.contents &&
     data.contents.twoColumnWatchNextResults &&
     data.contents.twoColumnWatchNextResults.results &&
     data.contents.twoColumnWatchNextResults.results.results &&
     data.contents.twoColumnWatchNextResults.results.results.contents
-    ? data.contents.twoColumnWatchNextResults.results.results.contents
-    : [];
+    ? data.contents.twoColumnWatchNextResults.results.results.contents : [];
 
-  var title       = null;
-  var description = null;
-
+  var title = null, description = null;
   for (var k = 0; k < contents.length; k++) {
     var item = contents[k];
-
-    // Title
     if (item.videoPrimaryInfoRenderer) {
-      var runs = item.videoPrimaryInfoRenderer.title &&
-                 item.videoPrimaryInfoRenderer.title.runs;
+      var runs = item.videoPrimaryInfoRenderer.title && item.videoPrimaryInfoRenderer.title.runs;
       if (runs && runs.length) {
         title = runs.map(function(r) { return r.text; }).join('');
       }
     }
-
-    // Description
     if (item.videoSecondaryInfoRenderer) {
       var sec = item.videoSecondaryInfoRenderer;
-
-      // Modern path: attributedDescription.content (plain text)
       if (sec.attributedDescription && sec.attributedDescription.content) {
         description = sec.attributedDescription.content;
       }
-
-      // Legacy path: description.runs[].text joined
       if (!description && sec.description && sec.description.runs && sec.description.runs.length) {
         description = sec.description.runs.map(function(r) { return r.text; }).join('');
       }
     }
-
     if (title && description) break;
   }
 
@@ -298,25 +239,18 @@ async function scrapeYouTubePage(videoId) {
 // ── Thumbnail download ────────────────────────────────────────
 async function downloadThumbnail(url, videoId) {
   var filename = 'thumbnail_' + videoId + '.jpg';
-
-  // Chrome Extension: chrome.downloads API gives a real, direct download
   if (typeof chrome !== 'undefined' && chrome.downloads && chrome.downloads.download) {
     chrome.downloads.download({ url: url, filename: filename, saveAs: false });
-    showToast('Downloading to your Downloads folder…');
+    showToast('Downloading…');
     return;
   }
-
-  // Fallback for non-extension context
   try {
-    var res  = await fetch(url);
+    var res = await fetch(url);
     var blob = await res.blob();
     var burl = URL.createObjectURL(blob);
-    var a    = document.createElement('a');
-    a.href     = burl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    var a = document.createElement('a');
+    a.href = burl; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function() { URL.revokeObjectURL(burl); }, 10000);
     showToast('Download started');
   } catch (e) {
@@ -324,11 +258,16 @@ async function downloadThumbnail(url, videoId) {
   }
 }
 
-
+// ── Open video in new tab ─────────────────────────────────────
+function openVideoInTab() {
+  if (!currentVideoId) return;
+  var url = 'https://www.youtube.com/watch?v=' + currentVideoId;
+  chrome.tabs.create({ url: url, active: true });
+}
 
 // ── Main extract ──────────────────────────────────────────────
 async function doExtract() {
-  var rawUrl  = input.value.trim();
+  var rawUrl = input.value.trim();
   clearError();
 
   var videoId = extractVideoId(rawUrl);
@@ -337,83 +276,71 @@ async function doExtract() {
     return;
   }
 
-  extractBtn.disabled = true;
-  extractBtn.classList.add('loading');
   currentVideoId = videoId;
 
   try {
-    // Show video ID immediately
     videoIdOut.textContent = videoId;
 
-    // Scrape title + description from YouTube page
     var meta = await scrapeYouTubePage(videoId);
-
     var canonicalUrl = 'https://www.youtube.com/watch?v=' + videoId;
 
-    // Build combined block: URL --- Title --- Description
     videoInfoOut.textContent =
       canonicalUrl + '\n---\n' + meta.title + '\n---\n' + meta.description;
 
     // Thumbnail
     var maxUrl = maxThumbUrl(videoId);
-    var hqUrl  = 'https://i.ytimg.com/vi/' + videoId + '/hqdefault.jpg';
-
+    var hqUrl = 'https://i.ytimg.com/vi/' + videoId + '/hqdefault.jpg';
     currentThumbUrl = maxUrl;
 
     thumbImg.style.opacity = '0';
     thumbImg.src = maxUrl;
 
     thumbImg.onload = function() {
-      // maxres unavailable — YouTube serves a 120×90 placeholder image
       if (thumbImg.naturalWidth <= 120) {
         currentThumbUrl = hqUrl;
-        thumbImg.src    = hqUrl;
+        thumbImg.src = hqUrl;
       }
       thumbImg.style.opacity = '1';
     };
-
     thumbImg.onerror = function() {
       currentThumbUrl = hqUrl;
-      thumbImg.src    = hqUrl;
+      thumbImg.src = hqUrl;
       thumbImg.style.opacity = '1';
     };
 
     thumbPlaceholder.style.display = 'none';
-    thumbDisplay.style.display     = 'block';
+    thumbDisplay.style.display = 'block';
 
     revealCards();
-
   } catch (err) {
     showError(err.message);
     console.error(err);
-  } finally {
-    extractBtn.disabled = false;
-    extractBtn.classList.remove('loading');
   }
 }
 
 // ── Events ───────────────────────────────────────────────────
-extractBtn.addEventListener('click', doExtract);
-
 input.addEventListener('keydown', function(e) {
   if (e.key === 'Enter') doExtract();
 });
 
 input.addEventListener('input', function() {
   var hasValue = input.value.length > 0;
-  clearBtn.style.display = hasValue ? 'flex' : 'none';
-  copyUrlBtn.style.display = hasValue ? 'flex' : 'none';
+  inputActions.style.display = hasValue ? 'flex' : 'none';
   if (errorBanner.classList.contains('visible')) clearError();
 });
 
 input.addEventListener('paste', function() {
-  setTimeout(function() { if (input.value.trim()) doExtract(); }, 80);
+  setTimeout(function() {
+    if (input.value.trim()) {
+      inputActions.style.display = 'flex';
+      doExtract();
+    }
+  }, 80);
 });
 
 clearBtn.addEventListener('click', function() {
   input.value = '';
-  clearBtn.style.display = 'none';
-  copyUrlBtn.style.display = 'none';
+  inputActions.style.display = 'none';
   input.focus();
   clearError();
 });
@@ -423,28 +350,23 @@ copyUrlBtn.addEventListener('click', async function() {
   if (!url) return;
   var ok = await copyText(url);
   if (ok) {
-    // Show checkmark briefly
-    var icoCopy  = copyUrlBtn.querySelector('.ico-copy');
+    var icoCopy = copyUrlBtn.querySelector('.ico-copy');
     var icoCheck = copyUrlBtn.querySelector('.ico-check');
     icoCopy.style.display = 'none';
     icoCheck.style.display = 'block';
-    copyUrlBtn.style.color = '#4ade80';
     showToast('URL copied');
     setTimeout(function() {
       icoCopy.style.display = 'block';
       icoCheck.style.display = 'none';
-      copyUrlBtn.style.color = '';
     }, 1500);
   }
 });
 
-// ── Copy button handlers ──────────────────────────────────────
-// flashCopy fires IMMEDIATELY on click (before await) so the visual
-// feedback is never blocked by clipboard API failures.
+// Copy buttons
 document.getElementById('copy-id-btn').addEventListener('click', async function(e) {
   var t = videoIdOut.textContent;
   if (!t || t === '\u2014') return;
-  flashCopy(e.currentTarget);          // show feedback right away
+  flashCopy(e.currentTarget);
   await copyText(t);
   showToast('Video ID copied');
 });
@@ -461,9 +383,8 @@ copyThumbBtn.addEventListener('click', async function(e) {
   if (!currentThumbUrl) return;
   flashCopy(e.currentTarget);
   try {
-    // Draw the loaded <img> onto a canvas to get PNG blob
     var canvas = document.createElement('canvas');
-    canvas.width  = thumbImg.naturalWidth;
+    canvas.width = thumbImg.naturalWidth;
     canvas.height = thumbImg.naturalHeight;
     var ctx = canvas.getContext('2d');
     ctx.drawImage(thumbImg, 0, 0);
@@ -479,8 +400,6 @@ copyThumbBtn.addEventListener('click', async function(e) {
     ]);
     showToast('Image copied to clipboard');
   } catch (err) {
-    console.warn('[YT-Info] Copy image failed:', err);
-    // Fallback: copy the URL instead
     await copyText(currentThumbUrl);
     showToast('Image URL copied (image copy not supported)');
   }
@@ -491,38 +410,24 @@ downloadBtn.addEventListener('click', function() {
   downloadThumbnail(currentThumbUrl, currentVideoId);
 });
 
-// Watch video — opens a small popup window
-function openVideoPlayer() {
-  if (!currentVideoId) return;
-  var url = 'https://www.youtube.com/watch?v=' + currentVideoId;
-  chrome.windows.create({
-    url: url,
-    type: 'popup',
-    width: 800,
-    height: 500
-  });
-}
-
-watchBtn.addEventListener('click', openVideoPlayer);
-playOverlay.addEventListener('click', openVideoPlayer);
+// Open video in new tab
+openLinkBtn.addEventListener('click', openVideoInTab);
 
 // Drag & drop
 document.addEventListener('dragover', function(e) { e.preventDefault(); });
 document.addEventListener('drop', function(e) {
   e.preventDefault();
   var text = e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('text/uri-list');
-  if (text) { input.value = text.trim(); clearBtn.style.display = 'flex'; doExtract(); }
+  if (text) { input.value = text.trim(); inputActions.style.display = 'flex'; doExtract(); }
 });
 
 // ── API Key Settings ──────────────────────────────────────────
 
-// Toggle panel
 settingsBtn.addEventListener('click', function() {
   var isVisible = apiPanel.classList.toggle('visible');
   settingsBtn.classList.toggle('active', isVisible);
 });
 
-// Load saved key on init
 function loadApiKey() {
   if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
     chrome.storage.local.get('ytApiKey', function(result) {
@@ -535,7 +440,6 @@ function loadApiKey() {
 }
 loadApiKey();
 
-// Save key
 apiSaveBtn.addEventListener('click', function() {
   var key = apiKeyInput.value.trim();
   if (!key) {
@@ -546,7 +450,6 @@ apiSaveBtn.addEventListener('click', function() {
   apiSaveBtn.textContent = 'Validating…';
   apiSaveBtn.disabled = true;
 
-  // Validate via background worker
   chrome.runtime.sendMessage(
     { type: 'VALIDATE_API_KEY', apiKey: key },
     function(response) {
@@ -567,8 +470,8 @@ apiSaveBtn.addEventListener('click', function() {
       } else {
         apiStatusDot.classList.remove('connected');
         var errMsg = response && response.error ? response.error : 'Unknown error';
-        if (errMsg === 'keyInvalid') errMsg = 'Invalid API key. Check the key and try again.';
-        if (errMsg === 'accessNotConfigured') errMsg = 'YouTube Data API v3 is not enabled for this key. Enable it in Google Cloud Console.';
+        if (errMsg === 'keyInvalid') errMsg = 'Invalid API key.';
+        if (errMsg === 'accessNotConfigured') errMsg = 'YouTube Data API v3 is not enabled for this key.';
         showApiStatus('✗ ' + errMsg, true);
       }
     }
@@ -581,7 +484,6 @@ function showApiStatus(msg, isError) {
   setTimeout(function() { apiStatusMsg.classList.remove('visible'); }, 5000);
 }
 
-// Allow Enter in API key input
 apiKeyInput.addEventListener('keydown', function(e) {
   if (e.key === 'Enter') apiSaveBtn.click();
 });

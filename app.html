@@ -4,21 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>YouTube Video Info</title>
-  <meta name="description" content="Extract YouTube video ID, title, description and thumbnail instantly." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="app.css" />
 </head>
 <body>
-
-  <!-- Ambient background orbs -->
-  <div class="bg-orbs" aria-hidden="true">
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-    <div class="orb orb-3"></div>
-  </div>
-
   <div class="app-container">
 
     <!-- ── Header ─────────────────────────────────────── -->
@@ -44,19 +32,17 @@
 
       <div class="settings-bar">
         <!-- Settings gear -->
-        <button id="settings-btn" class="settings-btn" aria-label="API Settings" title="API Key Settings">
+        <button id="settings-btn" class="icon-circle-btn" aria-label="API Settings" title="API Key Settings">
           <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
 
         <!-- Theme toggle -->
-        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle theme">
-          <!-- Moon icon (shown in dark mode) -->
+        <button id="theme-toggle" class="icon-circle-btn" aria-label="Toggle light/dark mode" title="Toggle theme">
           <svg class="icon-moon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" fill="currentColor"/>
           </svg>
-          <!-- Sun icon (shown in light mode) -->
           <svg class="icon-sun" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none">
             <circle cx="10" cy="10" r="3.5" stroke="currentColor" stroke-width="1.5"/>
             <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -82,37 +68,38 @@
         <button id="api-save-btn" class="api-save-btn">Save Key</button>
       </div>
       <div class="api-status-msg" id="api-status-msg"></div>
-      <p class="api-quota-hint">Free tier: 10,000 units/day ≈ 3,300 videos. Your key is stored locally and never sent anywhere except Google's API.</p>
+      <p class="api-quota-hint">Free tier: 10,000 units/day ≈ 3,300 videos. Your key is stored locally.</p>
     </div>
 
     <!-- ── Input ──────────────────────────────────────── -->
     <section class="input-section">
-      <div class="input-wrapper" id="input-wrapper">
-        <svg class="input-prefix-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" fill="currentColor"/>
-        </svg>
-        <input
-          type="url"
-          id="yt-url-input"
-          class="url-input"
-          placeholder="Paste YouTube URL here…"
-          autocomplete="off"
-          spellcheck="false"
-          aria-label="YouTube URL"
-        />
-        <button id="clear-btn" class="icon-btn clear-btn" aria-label="Clear" style="display:none">
-          <svg viewBox="0 0 20 20" fill="none"><path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-        </button>
-        <button id="copy-url-btn" class="icon-btn copy-url-btn" aria-label="Copy URL" title="Copy URL" style="display:none">
-          <svg class="ico-copy" viewBox="0 0 18 18" fill="none"><rect x="6" y="6" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M3 12V4a2 2 0 012-2h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-          <svg class="ico-check" viewBox="0 0 18 18" fill="none" style="display:none"><path d="M3 9l4 4 8-8" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
+      <div class="input-row">
+        <div class="input-wrapper" id="input-wrapper">
+          <svg class="input-prefix-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" fill="currentColor"/>
+          </svg>
+          <input
+            type="url"
+            id="yt-url-input"
+            class="url-input"
+            placeholder="Paste YouTube URL here…"
+            autocomplete="off"
+            spellcheck="false"
+            aria-label="YouTube URL"
+          />
+        </div>
+        <div class="input-actions" id="input-actions" style="display:none">
+          <button id="copy-url-btn" class="input-action-btn" aria-label="Copy URL" title="Copy URL">
+            <svg class="ico-copy" viewBox="0 0 18 18" fill="none"><rect x="6" y="6" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M3 12V4a2 2 0 012-2h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <svg class="ico-check" viewBox="0 0 18 18" fill="none" style="display:none"><path d="M3 9l4 4 8-8" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Copy</span>
+          </button>
+          <button id="clear-btn" class="input-action-btn input-action-btn--danger" aria-label="Clear">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <span>Clear</span>
+          </button>
+        </div>
       </div>
-      <button id="extract-btn" class="extract-btn" aria-label="Extract info">
-        <span class="btn-label">Extract</span>
-        <svg class="btn-icon" viewBox="0 0 18 18" fill="none"><path d="M9 3v9M5 8l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span class="btn-spinner" id="btn-spinner"></span>
-      </button>
     </section>
 
     <!-- ── Error ──────────────────────────────────────── -->
@@ -128,11 +115,17 @@
             <span class="badge badge-purple">01</span>
             <span class="card-title">Video ID</span>
           </div>
-          <button class="action-btn copy-btn" id="copy-id-btn" aria-label="Copy Video ID">
-            <svg class="ico-copy" viewBox="0 0 18 18" fill="none"><rect x="6" y="6" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M3 12V4a2 2 0 012-2h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-            <svg class="ico-check" viewBox="0 0 18 18" fill="none"><path d="M3 9l4 4 8-8" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span>Copy</span>
-          </button>
+          <div class="thumb-actions">
+            <button class="action-btn open-link-btn" id="open-link-btn" aria-label="Open on YouTube">
+              <svg viewBox="0 0 14 14" fill="none"><path d="M5 2H3a1 1 0 00-1 1v8a1 1 0 001 1h8a1 1 0 001-1V9M8 2h4v4M12 2L6 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>Open</span>
+            </button>
+            <button class="action-btn copy-btn" id="copy-id-btn" aria-label="Copy Video ID">
+              <svg class="ico-copy" viewBox="0 0 18 18" fill="none"><rect x="6" y="6" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M3 12V4a2 2 0 012-2h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+              <svg class="ico-check" viewBox="0 0 18 18" fill="none"><path d="M3 9l4 4 8-8" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>Copy</span>
+            </button>
+          </div>
         </div>
         <div class="card-body">
           <code class="value-mono" id="video-id-out">—</code>
@@ -165,10 +158,6 @@
             <span class="card-title">Thumbnail <span class="badge-quality">Max HD · 1280×720</span></span>
           </div>
           <div class="thumb-actions">
-            <button class="action-btn watch-btn" id="watch-btn" aria-label="Watch video">
-              <svg viewBox="0 0 18 18" fill="none"><polygon points="6,3 16,9 6,15" fill="currentColor"/></svg>
-              <span>Watch</span>
-            </button>
             <button class="action-btn copy-btn" id="copy-thumb-img-btn" aria-label="Copy image to clipboard">
               <svg class="ico-copy" viewBox="0 0 18 18" fill="none"><rect x="2" y="4" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.4"/><circle cx="6.5" cy="8" r="1.5" fill="currentColor"/><path d="M2 12l4-4 3 3 2-2 5 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               <svg class="ico-check" viewBox="0 0 18 18" fill="none"><path d="M3 9l4 4 8-8" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -187,11 +176,6 @@
           </div>
           <div class="thumb-display" id="thumb-display" style="display:none">
             <img id="thumb-img" class="thumb-img" src="" alt="YouTube video thumbnail" />
-            <button class="play-overlay" id="play-overlay" aria-label="Watch video">
-              <div class="play-circle">
-                <svg viewBox="0 0 24 24" fill="none"><polygon points="9,6 19,12 9,18" fill="white"/></svg>
-              </div>
-            </button>
           </div>
         </div>
       </article>

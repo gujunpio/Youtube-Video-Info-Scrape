@@ -23,8 +23,8 @@ document.getElementById('open-btn').addEventListener('click', async () => {
   const win = await chrome.windows.create({
     url: APP_URL,
     type: 'popup',
-    width: 840,
-    height: 780,
+    width: 800,
+    height: 700,
     focused: true,
   });
 

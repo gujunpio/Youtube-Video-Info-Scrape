@@ -2,9 +2,9 @@
   "manifest_version": 3,
   "name": "YouTube Video Info",
   "short_name": "YT Info",
-  "version": "1.0.0",
-  "description": "Extract YouTube video ID, title, full description and max-res thumbnail in one click.",
-  "permissions": ["windows", "downloads", "storage"],
+  "version": "2.0.0",
+  "description": "Extract YouTube video ID, title, full description and thumbnail in one click.",
+  "permissions": ["tabs", "windows", "downloads", "storage"],
   "host_permissions": [
     "https://www.youtube.com/*",
     "https://youtube.com/*",
