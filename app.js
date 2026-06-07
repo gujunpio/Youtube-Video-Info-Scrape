@@ -17,15 +17,16 @@ const inputActions = document.getElementById('input-actions');
 const inputWrapper = document.getElementById('input-wrapper');
 const errorBanner  = document.getElementById('error-banner');
 
-const videoIdOut   = document.getElementById('video-id-out');
-const videoInfoOut = document.getElementById('video-info-out');
-const thumbImg     = document.getElementById('thumb-img');
+const videoIdOut    = document.getElementById('video-id-out');
+const videoTitleOut = document.getElementById('video-title-out');
+const videoDescOut  = document.getElementById('video-desc-out');
+const thumbImg      = document.getElementById('thumb-img');
 const thumbPlaceholder = document.getElementById('thumb-placeholder');
-const thumbDisplay = document.getElementById('thumb-display');
-const copyThumbBtn = document.getElementById('copy-thumb-img-btn');
-const downloadBtn  = document.getElementById('download-thumb-btn');
-const openLinkBtn  = document.getElementById('open-link-btn');
-const toast        = document.getElementById('toast');
+const thumbDisplay  = document.getElementById('thumb-display');
+const copyThumbBtn  = document.getElementById('copy-thumb-img-btn');
+const downloadBtn   = document.getElementById('download-thumb-btn');
+const openLinkBtn   = document.getElementById('open-link-btn');
+const toast         = document.getElementById('toast');
 
 const cards = document.querySelectorAll('.card');
 
@@ -279,13 +280,12 @@ async function doExtract() {
   currentVideoId = videoId;
 
   try {
-    videoIdOut.textContent = videoId;
+    videoIdOut.textContent    = videoId;
 
     var meta = await scrapeYouTubePage(videoId);
-    var canonicalUrl = 'https://www.youtube.com/watch?v=' + videoId;
 
-    videoInfoOut.textContent =
-      canonicalUrl + '\n---\n' + meta.title + '\n---\n' + meta.description;
+    videoTitleOut.textContent = meta.title;
+    videoDescOut.textContent  = meta.description;
 
     // Thumbnail
     var maxUrl = maxThumbUrl(videoId);
@@ -371,12 +371,20 @@ document.getElementById('copy-id-btn').addEventListener('click', async function(
   showToast('Video ID copied');
 });
 
-document.getElementById('copy-info-btn').addEventListener('click', async function(e) {
-  var t = videoInfoOut.textContent;
+document.getElementById('copy-title-btn').addEventListener('click', async function(e) {
+  var t = videoTitleOut.textContent;
   if (!t || t === '\u2014') return;
   flashCopy(e.currentTarget);
   await copyText(t);
-  showToast('Info copied');
+  showToast('Title copied');
+});
+
+document.getElementById('copy-desc-btn').addEventListener('click', async function(e) {
+  var t = videoDescOut.textContent;
+  if (!t || t === '\u2014') return;
+  flashCopy(e.currentTarget);
+  await copyText(t);
+  showToast('Description copied');
 });
 
 copyThumbBtn.addEventListener('click', async function(e) {
